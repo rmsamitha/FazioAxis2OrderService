@@ -1,5 +1,8 @@
-package org.wso2;
+package org.wso2.models;
 
+/**
+Model class realted to predefined item
+ */
 public class Item {
 	private String id;
 	private String name;

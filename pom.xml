@@ -8,6 +8,28 @@
   <packaging>service/axis2</packaging>
   <name>FazioServiceProject</name>
   <description>FazioServiceProject</description>
+  <dependencies>
+    <dependency>
+      <groupId>com.sun.grizzly.osgi</groupId>
+      <artifactId>grizzly-httpservice</artifactId>
+      <version>1.9.45</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.axis2.wso2</groupId>
+      <artifactId>axis2</artifactId>
+      <version>1.6.1.wso2v19</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.10</version>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20160810</version>
+    </dependency>
+  </dependencies>
   <repositories>
     <repository>
       <releases>
