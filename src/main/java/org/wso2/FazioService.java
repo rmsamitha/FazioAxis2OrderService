@@ -70,12 +70,14 @@ public class FazioService {
         MessageContext context = MessageContext.getCurrentMessageContext();
         HttpServletRequest req = (HttpServletRequest) context.getProperty(HTTPConstants.MC_HTTP_SERVLETREQUEST);
         String jwtHeader = req.getHeader("x-jwt-assertion");
+        String applicationTier = null;
+        if (jwtHeader != null) {
+            String jwtPayload = jwtHeader.split("\\.")[1];
+            String jwtPayloadDecoded = new String(Base64.decodeBase64(jwtPayload));
 
-        String jwtPayload = jwtHeader.split("\\.")[1];
-        String jwtPayloadDecoded = new String(Base64.decodeBase64(jwtPayload));
-
-        JSONObject jwtPayloadJSON = new JSONObject(jwtPayloadDecoded);
-        String applicationTier = jwtPayloadJSON.getString("http://wso2.org/claims/applicationtier");
+            JSONObject jwtPayloadJSON = new JSONObject(jwtPayloadDecoded);
+            applicationTier = jwtPayloadJSON.getString("http://wso2.org/claims/applicationtier");
+        }
 
         int openOrderCount = 0;
 
@@ -94,18 +96,31 @@ public class FazioService {
         Order[] openOrders;
         // if application tier is "Free-Large" or "Free-Small" return only order id and order header as order details
         // of each order
-        if (applicationTier.equals("Free-Large") || applicationTier.equals("Free-Small")) {
-            openOrders = new OrderInBrief[openOrderCount];
-            int itr = 0;
-            for (Map.Entry<Integer, DetailedOrder> entry : orders.entrySet()) {
-                DetailedOrder order = entry.getValue();
-                if (order.getCutstomerId().equals(customerId)) {
-                    OrderInBrief openOrder = new OrderInBrief(order.getOrderId(), order.getOrderHeader());
-                    openOrders[itr] = openOrder;
-                    itr++;
+        if (applicationTier != null) {
+            if (applicationTier.equals("Free-Large") || applicationTier.equals("Free-Small")) {
+                openOrders = new OrderInBrief[openOrderCount];
+                int itr = 0;
+                for (Map.Entry<Integer, DetailedOrder> entry : orders.entrySet()) {
+                    DetailedOrder order = entry.getValue();
+                    if (order.getCutstomerId().equals(customerId)) {
+                        OrderInBrief openOrder = new OrderInBrief(order.getOrderId(), order.getOrderHeader());
+                        openOrders[itr] = openOrder;
+                        itr++;
+                    }
                 }
+                return openOrders;
+            } else { //return all the details of each order
+                openOrders = new DetailedOrder[openOrderCount];
+                int itr = 0;
+                for (Map.Entry<Integer, DetailedOrder> entry : orders.entrySet()) {
+                    DetailedOrder order = entry.getValue();
+                    if (order.getCutstomerId().equals(customerId)) {
+                        openOrders[itr] = order;
+                        itr++;
+                    }
+                }
+                return openOrders;
             }
-            return openOrders;
         } else { //return all the details of each order
             openOrders = new DetailedOrder[openOrderCount];
             int itr = 0;
@@ -164,33 +179,4 @@ public class FazioService {
             throw new RuntimeException("DetailedOrder cannot be cancelled");
         }
     }
-
-   /* public RequestInfo getInfo() {
-
-        // Getting the current MessageContext
-        MessageContext msgContext = MessageContext.getCurrentMessageContext();
-
-        // Getting HttpServletRequest from Message Context
-        Object requestProperty = msgContext
-                .getProperty(HTTPConstants.MC_HTTP_SERVLETREQUEST);
-
-        RequestInfo info = new RequestInfo();
-
-        if (requestProperty != null
-                && requestProperty instanceof HttpServletRequest) {
-
-            HttpServletRequest request = (HttpServletRequest) requestProperty;
-
-            // Extracting the properties from HttpServletRequest filling them in
-            // RequestInfo bean
-            info.setRemoteHost(request.getRemoteAddr());
-            info.setCharacterEncoding(request.getCharacterEncoding());
-            info.setUserAgent(request.getHeader("user-agent"));
-            info.setLanguage(request.getLocale().getLanguage());
-
-        }
-
-        return info;
-    }*/
-
 }
