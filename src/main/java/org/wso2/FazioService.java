@@ -4,8 +4,6 @@ import org.apache.axis2.context.MessageContext;
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.json.JSONObject;
 import org.wso2.models.*;
-
-//import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -76,7 +74,7 @@ public class FazioService {
             String jwtPayloadDecoded = new String(Base64.decodeBase64(jwtPayload));
 
             JSONObject jwtPayloadJSON = new JSONObject(jwtPayloadDecoded);
-            applicationTier = jwtPayloadJSON.getString("http://wso2.org/claims/applicationtier");
+            applicationTier = jwtPayloadJSON.getString("http://wso2.org/claims/tier");
         }
 
         int openOrderCount = 0;
