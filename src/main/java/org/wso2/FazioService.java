@@ -4,6 +4,7 @@ import org.apache.axis2.context.MessageContext;
 import org.apache.axis2.transport.http.HTTPConstants;
 import org.json.JSONObject;
 import org.wso2.models.*;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +19,10 @@ public class FazioService {
     public static Map<String, Item> items = new HashMap<String, Item>();
     private static Map<Integer, DetailedOrder> orders = new HashMap<Integer, DetailedOrder>();
     static private int orderCount = 1000;
+    private static final String JWT_HEADER_NAME = "x-jwt-assertion";
+    private static final String SUBSCRIBED_TIER = "http://wso2.org/claims/tier";
+    private static final String FREE_LARGE_TIER = "Free-Large";
+    private static final String FREE_SMALL_TIER = "Free-Small";
 
     static {
         items.put("IT001", new Item("IT001", "Mouse", 25.0, "$US"));
@@ -67,18 +72,17 @@ public class FazioService {
     public Order[] getOpenOrders(String customerId) {
         MessageContext context = MessageContext.getCurrentMessageContext();
         HttpServletRequest req = (HttpServletRequest) context.getProperty(HTTPConstants.MC_HTTP_SERVLETREQUEST);
-        String jwtHeader = req.getHeader("x-jwt-assertion");
+        String jwtHeader = req.getHeader(JWT_HEADER_NAME);
         String applicationTier = null;
         if (jwtHeader != null) {
             String jwtPayload = jwtHeader.split("\\.")[1];
             String jwtPayloadDecoded = new String(Base64.decodeBase64(jwtPayload));
 
             JSONObject jwtPayloadJSON = new JSONObject(jwtPayloadDecoded);
-            applicationTier = jwtPayloadJSON.getString("http://wso2.org/claims/tier");
+            applicationTier = jwtPayloadJSON.getString(SUBSCRIBED_TIER);
         }
 
         int openOrderCount = 0;
-
         //get open orders count
         for (Map.Entry<Integer, DetailedOrder> entry : orders.entrySet()) {
             DetailedOrder order = entry.getValue();
@@ -95,7 +99,7 @@ public class FazioService {
         // if application tier is "Free-Large" or "Free-Small" return only order id and order header as order details
         // of each order
         if (applicationTier != null) {
-            if (applicationTier.equals("Free-Large") || applicationTier.equals("Free-Small")) {
+            if (applicationTier.equals(FREE_LARGE_TIER) || applicationTier.equals(FREE_SMALL_TIER)) {
                 openOrders = new OrderInBrief[openOrderCount];
                 int itr = 0;
                 for (Map.Entry<Integer, DetailedOrder> entry : orders.entrySet()) {
